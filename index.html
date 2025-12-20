@@ -6,13 +6,15 @@
     <title>Tetris Minimal</title>
     <style>
         :root {
-            --bg-color: #1a1a24;
-            --game-bg: #111;
+            --bg-color: #0f0f13;
+            --game-bg: #050505;
             --accent-color: #ff0055;
-            --text-color: #eee;
-            --btn-bg: rgba(255, 255, 255, 0.1);
-            --btn-active: rgba(255, 255, 255, 0.3);
-            --border-color: #333;
+            --text-color: #ffffff;
+            --btn-bg: rgba(255, 255, 255, 0.08);
+            --btn-active: rgba(255, 255, 255, 0.15);
+            --btn-border: rgba(255, 255, 255, 0.12);
+            --btn-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --border-color: #222;
         }
 
         * {
@@ -106,7 +108,24 @@
         }
         #overlay h1 { margin: 0 0 10px 0; font-size: 2rem; color: var(--accent-color); font-weight: 800; }
         #overlay p { margin-bottom: 20px; color: #aaa; font-weight: 500; }
-        .blink { animation: blink 1.5s infinite; font-weight: bold; padding: 10px 20px; border: 1px solid #fff; border-radius: 20px;}
+        .blink { 
+            animation: blink 1.5s infinite; 
+            font-weight: bold; 
+            padding: 12px 24px; 
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            border-radius: 24px;
+            color: var(--text-color);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            box-shadow: var(--btn-shadow);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .blink:active {
+            transform: scale(0.95);
+            background: var(--btn-active);
+        }
         @keyframes blink { 50% { opacity: 0.5; } }
 
         /* Controls Area - Restored Grid Layout */
@@ -127,41 +146,54 @@
             max-width: 320px; /* Limit width */
         }
 
-        .btn {
-            width: 70px; height: 70px;
+        /* Consistent Button Styles */
+        .btn, .util-btn {
             background: var(--btn-bg);
-            border: 2px solid rgba(255,255,255,0.1); /* Slightly thicker border */
-            border-radius: 50%;
+            border: 1px solid var(--btn-border);
+            color: var(--text-color);
+            cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 28px;
-            color: #fff;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.1s;
-            margin: 0 auto;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            box-shadow: var(--btn-shadow);
         }
-        .btn:active { background: var(--btn-active); transform: scale(0.95); box-shadow: none; }
-        
-        /* Grid Positions (Original Layout) */
-        /* Row 1: Empty, Hard Drop, Rotate */
-        .btn-hard   { grid-column: 2; grid-row: 1; background: rgba(255, 60, 40, 0.2); border-color: rgba(255, 60, 40, 0.5); }
-        .btn-rotate { grid-column: 3; grid-row: 1; background: rgba(40, 60, 255, 0.2); border-color: rgba(40, 60, 255, 0.5); }
-        
-        /* Row 2: Left, Down, Right */
-        .btn-left   { grid-column: 1; grid-row: 2; }
-        .btn-down   { grid-column: 2; grid-row: 2; }
-        .btn-right  { grid-column: 3; grid-row: 2; }
 
-        /* Utility Buttons (Pause/Mute/Stop) */
-        .util-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
-            font-size: 20px; color: #aaa; padding: 8px 12px; border-radius: 8px;
-            min-width: 44px;
-            cursor: pointer;
+        .btn:active, .util-btn:active {
+            background: var(--btn-active);
+            transform: scale(0.92);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
-        .util-group { display: flex; gap: 8px; }
+
+        /* Control Buttons (Circular) */
+        .btn {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            font-size: 28px;
+            margin: 0 auto;
+        }
+
+        /* Utility Buttons (Squircle/Rounded Rect) */
+        .util-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            font-size: 20px;
+            padding: 0;
+            min-width: 44px;
+        }
+
+        .util-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Specific Control Colors (Subtle Accents) */
+        .btn-hard { color: #ff3c28; border-color: rgba(255, 60, 40, 0.3); }
+        .btn-rotate { color: #283cff; border-color: rgba(40, 60, 255, 0.3); }
 
         /* ... (rest of style) ... */
 
