@@ -49,7 +49,16 @@
 
         /* Header / Stats Area */
         #header {
-            display: none; /* Hide header as buttons are moved */
+            display: none;
+        }
+
+        .game-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-left: 20px;
+            justify-content: flex-start;
+            padding-top: 10px;
         }
 
         .side-controls {
@@ -62,43 +71,42 @@
             -webkit-backdrop-filter: blur(8px);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255,255,255,0.1);
-            margin-left: 10px;
+            width: 100%; /* Fill sidebar */
+            align-items: center;
         }
 
+        /* Stats in Sidebar */
         .board-stats {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            pointer-events: none;
-            z-index: 5;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
         }
 
         .stat-group {
             display: flex;
             flex-direction: column;
             align-items: center;
-        }
-        
-        .board-stats .stat-group {
-            background: rgba(0,0,0,0.15);
-            padding: 4px 10px;
+            background: rgba(0,0,0,0.3); /* Darker background for contrast */
+            padding: 8px 10px;
             border-radius: 12px;
             -webkit-backdrop-filter: blur(8px);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            width: 100%;
         }
+        
+        /* Removed old .board-stats .stat-group specific rule that had absolute postioning context */
 
         .stats-right {
             display: flex;
+            flex-direction: column; /* Stack stats vertically */
             gap: 10px;
+            width: 100%;
         }
 
-        .stat-label { font-size: 9px; color: #888; letter-spacing: 1px; margin-bottom: 2px; text-transform: uppercase; }
-        .stat-value { font-size: 16px; font-weight: bold; color: var(--text-color); }
+        .stat-label { font-size: 10px; color: #888; letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; }
+        .stat-value { font-size: 18px; font-weight: bold; color: var(--text-color); }
         .stat-group.horizontal { flex-direction: row; gap: 10px; }
 
         /* Game Area */
@@ -106,12 +114,12 @@
             flex: 1;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: center; /* Center vertically */
             position: relative;
-            padding: 10px;
-            /* Extra room for side controls on the right */
-            padding-right: 70px; 
-            padding-left: 70px; /* Balance for centering board */
+            padding: 20px;
+            width: 100%;
+            max-width: 800px; /* Increased max width to accommodate sidebar */
+            margin: 0 auto;
         }
 
         #game-board {
@@ -119,7 +127,6 @@
             border: 2px solid var(--border-color);
             background-color: var(--game-bg);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            /* Aspect ratio maintenance via JS or max-height */
             height: 100%;
             aspect-ratio: 12 / 20; 
             max-height: 58vh;
@@ -236,15 +243,54 @@
 
         /* ... (rest of style) ... */
 
+        /* Toast Styles */
+        #toast {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 85, 0.9); /* Accent color background */
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(255, 0, 85, 0.4);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: 100;
+            white-space: nowrap;
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        #toast.visible {
+            opacity: 1;
+        }
+
         /* Mobile Controls (Bottom) */
     </style>
 </head>
 <body>
 
     <div id="app">
+        <div id="toast">민비서 화이팅~</div>
+
         <!-- Game Area -->
         <div id="game-area">
             <div id="game-board">
+                <canvas id="tetris" width="240" height="400"></canvas>
+                <div id="overlay">
+                    <h1>TETRIS</h1>
+                    <p>민비서의 콧노래 ♪</p>
+                    <div class="blink">TAP TO START</div>
+                </div>
+            </div>
+
+            <div class="game-sidebar">
+                <!-- Stats and Controls -->
                 <div class="board-stats">
                     <div class="stat-group">
                         <span class="stat-label">NEXT</span>
@@ -261,20 +307,12 @@
                         </div>
                     </div>
                 </div>
-                
-                <canvas id="tetris" width="240" height="400"></canvas>
-                
-                <div id="overlay">
-                    <h1>TETRIS</h1>
-                    <p>민비서의 콧노래 ♪</p>
-                    <div class="blink">TAP TO START</div>
-                </div>
-            </div>
 
-            <div class="side-controls">
-                <button id="stop-btn" class="util-btn">⏹️</button>
-                <button id="pause-btn" class="util-btn">⏸️</button>
-                <button id="mute-btn" class="util-btn">🔊</button>
+                <div class="side-controls">
+                    <button id="stop-btn" class="util-btn">⏹️</button>
+                    <button id="pause-btn" class="util-btn">⏸️</button>
+                    <button id="mute-btn" class="util-btn">🔊</button>
+                </div>
             </div>
         </div>
 
@@ -311,6 +349,7 @@
         const pauseBtn = document.getElementById('pause-btn');
         const stopBtn = document.getElementById('stop-btn');
         const muteBtn = document.getElementById('mute-btn');
+        const toastEl = document.getElementById('toast');
 
         context.scale(20, 20);
         nextContext.scale(15, 15);
@@ -326,6 +365,7 @@
         let isPaused = false;
         let isMuted = false;
         let animationId = null;
+        let toastTimeout = null;
 
         // --- Audio Engine (Simplified) ---
         const AudioEngine = {
@@ -613,7 +653,11 @@
         }
 
         function showToast() {
-            // Toast functionality removed
+            toastEl.classList.add('visible');
+            if(toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toastEl.classList.remove('visible');
+            }, 3000);
         }
 
         // Event Listeners
