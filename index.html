@@ -351,6 +351,15 @@
             gameover: () => AudioEngine.play('sawtooth', 100, 1.0),
             levelUp: () => {
                 [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => AudioEngine.play('triangle', f, 0.2), i*100));
+            },
+            unlock: function() {
+                if (!this.ctx) this.init();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                const buffer = this.ctx.createBuffer(1, 1, 22050);
+                const source = this.ctx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(this.ctx.destination);
+                source.start(0);
             }
         };
 
@@ -548,8 +557,8 @@
         function startGame() {
             if (isPaused) { togglePause(); return; }
             
-            tryPlayAudio();
             if (!AudioEngine.ctx) AudioEngine.init();
+            AudioEngine.unlock();
 
             if (isGameOver) {
                 arena.forEach(row => row.fill(0));
@@ -628,8 +637,15 @@
             }
         });
 
-        overlay.addEventListener('click', startGame);
-        overlay.addEventListener('touchstart', (e) => { e.preventDefault(); startGame(); }, {passive: false});
+        overlay.addEventListener('click', (e) => {
+            AudioEngine.unlock();
+            startGame();
+        });
+        overlay.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            AudioEngine.unlock();
+            startGame(); 
+        }, {passive: false});
 
         stopBtn.addEventListener('click', (e) => { e.target.blur(); stopGame(); });
         pauseBtn.addEventListener('click', (e) => { e.target.blur(); togglePause(); });
@@ -647,9 +663,9 @@
             // Prevent default to stop double-tap zoom etc
             btn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
+                AudioEngine.unlock();
                 if(!isGameOver && !isPaused) {
                     cb();
-                    tryPlayAudio();
                 }
             }, {passive: false});
             // Mouse for testing
