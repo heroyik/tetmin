@@ -50,11 +50,24 @@
         /* Header / Stats Area */
         #header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            padding: 10px 20px;
-            height: 60px;
-            background: rgba(0,0,0,0.2);
+            padding: 0 20px;
+            height: 70px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .board-stats {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 5;
         }
 
         .stat-group {
@@ -62,8 +75,23 @@
             flex-direction: column;
             align-items: center;
         }
-        .stat-label { font-size: 10px; color: #888; letter-spacing: 1px; }
-        .stat-value { font-size: 18px; font-weight: bold; }
+        
+        .board-stats .stat-group {
+            background: rgba(0,0,0,0.3);
+            padding: 4px 10px;
+            border-radius: 12px;
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stats-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .stat-label { font-size: 9px; color: #888; letter-spacing: 1px; margin-bottom: 2px; text-transform: uppercase; }
+        .stat-value { font-size: 16px; font-weight: bold; color: var(--text-color); }
         .stat-group.horizontal { flex-direction: row; gap: 10px; }
 
         /* Game Area */
@@ -206,10 +234,25 @@
         <!-- Game Area -->
         <div id="game-area">
             <div id="game-board">
+                <div class="board-stats">
+                    <div class="stat-group">
+                        <span class="stat-label">NEXT</span>
+                        <canvas id="next-piece" width="60" height="60"></canvas>
+                    </div>
+                    <div class="stats-right">
+                        <div class="stat-group">
+                            <span class="stat-label">LEVEL</span>
+                            <span class="stat-value" id="level">1</span>
+                        </div>
+                        <div class="stat-group">
+                            <span class="stat-label">SCORE</span>
+                            <span class="stat-value" id="score">0</span>
+                        </div>
+                    </div>
+                </div>
+                
                 <canvas id="tetris" width="240" height="400"></canvas>
                 
-                <div id="toast">민비서 화이팅!</div>
-
                 <div id="overlay">
                     <h1>TETRIS</h1>
                     <p>민비서의 콧노래 ♪</p>
@@ -220,18 +263,7 @@
 
         <!-- Header / Info (Top on Mobile, Side on Desktop) -->
         <div id="header">
-            <div class="stat-group">
-                <canvas id="next-piece" width="80" height="80"></canvas>
-            </div>
-            <div class="stat-group">
-                <span class="stat-label">LEVEL</span>
-                <span class="stat-value" id="level">1</span>
-            </div>
-            <div class="stat-group">
-                <span class="stat-label">SCORE</span>
-                <span class="stat-value" id="score">0</span>
-            </div>
-            <div class="stat-group horizontal">
+            <div class="util-group">
                 <button id="stop-btn" class="util-btn">⏹️</button>
                 <button id="pause-btn" class="util-btn">⏸️</button>
                 <button id="mute-btn" class="util-btn">🔊</button>
@@ -266,13 +298,12 @@
         const levelEl = document.getElementById('level');
         const overlay = document.getElementById('overlay');
         const bgm = document.getElementById('bgm');
-        const toast = document.getElementById('toast');
         const pauseBtn = document.getElementById('pause-btn');
         const stopBtn = document.getElementById('stop-btn');
         const muteBtn = document.getElementById('mute-btn');
 
         context.scale(20, 20);
-        nextContext.scale(20, 20);
+        nextContext.scale(15, 15);
 
         const colors = [null, '#FF0D72', '#0DC2FF', '#0DFF72', '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'];
         const arena = createMatrix(12, 20);
@@ -285,7 +316,6 @@
         let isPaused = false;
         let isMuted = false;
         let animationId = null;
-        let toastTimeout = null;
 
         // --- Audio Engine (Simplified) ---
         const AudioEngine = {
@@ -564,9 +594,7 @@
         }
 
         function showToast() {
-            toast.classList.add('show');
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+            // Toast functionality removed
         }
 
         // Event Listeners
