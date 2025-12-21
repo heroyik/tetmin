@@ -333,8 +333,8 @@
       }
 
       #highscore-overlay h2 {
-        margin: 0 0 20px 0;
-        font-size: 1.8rem;
+        margin: 0 0 15px 0;
+        font-size: 1.2rem;
         color: var(--accent-color);
         text-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
         text-transform: uppercase;
@@ -378,19 +378,19 @@
       #name-input-container {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
         width: 100%;
-        max-width: 240px;
-        margin-bottom: 20px;
+        max-width: 200px;
+        margin-bottom: 15px;
       }
 
       #player-name {
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 10px;
+        padding: 8px;
         border-radius: 8px;
         color: white;
-        font-size: 1.1rem;
+        font-size: 1rem;
         text-align: center;
         outline: none;
       }
@@ -490,16 +490,10 @@
           <div id="highscore-overlay">
             <h2 id="hs-title">HIGH SCORES</h2>
 
-            <div id="name-input-container" style="display: none">
-              <p style="color: #aaa; margin-bottom: 10px">New Record!</p>
-              <input
-                type="text"
-                id="player-name"
-                placeholder="Enter Name"
-                maxlength="10"
-              />
-              <button id="submit-score-btn" class="action-btn">SUBMIT</button>
-            </div>
+                  <div id="name-input-container" style="display:none;">
+                        <input type="text" id="player-name" placeholder="Enter Name" maxlength="10">
+                        <button id="submit-score-btn" class="action-btn" style="padding: 8px 16px; font-size: 0.9rem;">SUBMIT</button>
+                  </div>
 
             <ul id="highscore-list" class="highscore-list">
               <!-- Scores will be injected here -->
@@ -1135,6 +1129,13 @@
       }
 
       async function handleGameOver() {
+        // 0. If score is 0, show high score screen immediately as non-record
+        if (player.score <= 0) {
+            const topScores = await fetchHighScores();
+            showHighScoreScreen(topScores, false);
+            return;
+        }
+
         // 1. Fetch current top 5
         const topScores = await fetchHighScores();
 
