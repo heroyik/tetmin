@@ -419,61 +419,56 @@
         opacity: 0.9;
       }
 
-        /* Mobile Responsive Layout */
+        /* Mobile Responsive Layout - Fixed Flanking */
         @media (max-width: 600px) {
             #game-area {
-                flex-direction: column;
-                padding: 10px;
-                gap: 15px;
+                flex-direction: row; /* FORCE ROW */
+                padding: 10px 5px;
+                gap: 5px;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                overflow: hidden;
             }
 
             .left-sidebar, .right-sidebar {
                 margin: 0;
                 padding: 0;
-                flex-direction: row;
-                width: 100%;
-                justify-content: space-between;
-                align-items: center;
+                flex: 0 0 auto;
+                width: 70px; /* Fixed small width to fit side by side */
+                gap: 10px;
+                display: flex;
+                flex-direction: column;
             }
 
-            /* Container for both sidebars on mobile */
-            .sidebar-mobile-row {
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-                width: 100%;
-                max-width: 320px;
-                margin: 0 auto;
-            }
+            .left-sidebar { margin-right: 5px; align-items: flex-end; }
+            .right-sidebar { margin-left: 5px; align-items: flex-start; }
 
             .board-stats {
-                flex-direction: row;
-                width: auto;
-                align-items: center;
-                gap: 5px;
+                width: 100%;
+                gap: 8px;
             }
 
             .stats-right {
-                flex-direction: row;
                 gap: 5px;
             }
 
             .stat-group {
-                width: auto;
-                min-width: 60px;
-                padding: 4px;
+                width: 100%;
+                min-width: 0;
+                padding: 4px 2px;
+                border-radius: 8px;
             }
 
-            .stat-label { font-size: 8px; }
-            .stat-value { font-size: 14px; }
+            .stat-label { font-size: 8px; margin-bottom: 2px; }
+            .stat-value { font-size: 13px; }
+            #next-piece { width: 40px; height: 40px; }
 
             .side-controls {
-                flex-direction: row;
-                width: auto;
-                padding: 5px 10px;
-                border-radius: 40px;
+                padding: 6px 4px;
+                border-radius: 15px;
                 gap: 8px;
+                width: 100%;
             }
 
             .util-btn {
@@ -481,16 +476,31 @@
                 height: 38px;
                 min-width: 38px;
                 font-size: 18px;
+                border-radius: 10px;
             }
 
             #game-board {
-                max-height: 50vh;
-                margin-bottom: 0;
+                flex: 1; 
+                max-width: 220px; /* Constrain board to fit flanked sidebars on small screens */
+                max-height: 55vh;
+                aspect-ratio: 12 / 20;
+                margin: 0;
             }
 
             #controls-area {
-                padding-bottom: 40px;
-                min-height: 140px;
+                padding-bottom: 20px;
+                min-height: 120px;
+            }
+            
+            #controls {
+                max-width: 280px;
+                gap: 15px;
+            }
+            
+            .btn {
+                width: 65px;
+                height: 65px;
+                font-size: 24px;
             }
         }
     </style>
