@@ -57,16 +57,18 @@
         display: none;
       }
 
-      .game-sidebar {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        margin-left: 20px;
-        justify-content: flex-start;
-        padding-top: 10px;
-      }
+        .left-sidebar, .right-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            justify-content: flex-start;
+            padding-top: 10px;
+        }
 
-      .side-controls {
+        .left-sidebar { margin-right: 20px; }
+        .right-sidebar { margin-left: 20px; }
+
+        .side-controls {
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -417,58 +419,80 @@
         opacity: 0.9;
       }
 
-      /* Mobile Responsive Layout */
-      @media (max-width: 600px) {
-        #game-area {
-          flex-direction: column;
-          padding: 10px;
-          gap: 10px;
-        }
+        /* Mobile Responsive Layout */
+        @media (max-width: 600px) {
+            #game-area {
+                flex-direction: column;
+                padding: 10px;
+                gap: 15px;
+            }
 
-        .game-sidebar {
-          margin-left: 0;
-          flex-direction: row;
-          width: 100%;
-          justify-content: center;
-          align-items: center;
-          padding-top: 0;
-          gap: 20px;
-        }
+            .left-sidebar, .right-sidebar {
+                margin: 0;
+                padding: 0;
+                flex-direction: row;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+            }
 
-        .board-stats {
-          flex-direction: row;
-          width: auto;
-          align-items: center;
-          gap: 15px;
-        }
+            /* Container for both sidebars on mobile */
+            .sidebar-mobile-row {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                max-width: 320px;
+                margin: 0 auto;
+            }
 
-        .stats-right {
-          flex-direction: row;
-          gap: 10px;
-        }
+            .board-stats {
+                flex-direction: row;
+                width: auto;
+                align-items: center;
+                gap: 5px;
+            }
 
-        .stat-group {
-          width: 80px;
-          padding: 5px;
-        }
+            .stats-right {
+                flex-direction: row;
+                gap: 5px;
+            }
 
-        .side-controls {
-          flex-direction: row;
-          width: auto;
-          padding: 5px 12px;
-          border-radius: 40px;
-        }
+            .stat-group {
+                width: auto;
+                min-width: 60px;
+                padding: 4px;
+            }
 
-        #game-board {
-          max-height: 50vh;
-          margin-bottom: 5px;
-        }
+            .stat-label { font-size: 8px; }
+            .stat-value { font-size: 14px; }
 
-        #controls-area {
-          padding-bottom: 40px; /* Reduced for mobile bottom bar */
-          min-height: 140px;
+            .side-controls {
+                flex-direction: row;
+                width: auto;
+                padding: 5px 10px;
+                border-radius: 40px;
+                gap: 8px;
+            }
+
+            .util-btn {
+                width: 38px;
+                height: 38px;
+                min-width: 38px;
+                font-size: 18px;
+            }
+
+            #game-board {
+                max-height: 50vh;
+                margin-bottom: 0;
+            }
+
+            #controls-area {
+                padding-bottom: 40px;
+                min-height: 140px;
+            }
         }
-      }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
@@ -477,83 +501,66 @@
     <div id="app">
       <div id="toast">민비서 화이팅~</div>
 
-      <!-- Game Area -->
-      <div id="game-area">
-        <div id="game-board">
-          <canvas id="tetris" width="240" height="400"></canvas>
-          <div id="overlay">
-            <h1>TETRIS</h1>
-            <p>민비서의 콧노래 ♪</p>
-            <div class="blink">TAP TO START</div>
-          </div>
-          <!-- High Score Overlay -->
-          <div id="highscore-overlay">
-            <h2 id="hs-title">HIGH SCORES</h2>
+        <!-- Game Area -->
+        <div id="game-area">
+            <div class="left-sidebar">
+                <!-- Stats -->
+                <div class="board-stats">
+                    <div class="stat-group">
+                        <span class="stat-label">NEXT</span>
+                        <canvas id="next-piece" width="60" height="60"></canvas>
+                    </div>
+                    <div class="stats-right">
+                        <div class="stat-group">
+                            <span class="stat-label">LEVEL</span>
+                            <span class="stat-value" id="level">1</span>
+                        </div>
+                        <div class="stat-group">
+                            <span class="stat-label">SCORE</span>
+                            <span class="stat-value" id="score">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                  <div id="name-input-container" style="display:none;">
+            <div id="game-board">
+                <canvas id="tetris" width="240" height="400"></canvas>
+                <div id="overlay">
+                    <h1>TETRIS</h1>
+                    <p>민비서의 콧노래 ♪</p>
+                    <div class="blink">TAP TO START</div>
+                </div>
+                <!-- High Score Overlay -->
+                <div id="highscore-overlay">
+                    <h2 id="hs-title">HIGH SCORES</h2>
+                    
+                    <div id="name-input-container" style="display:none;">
                         <input type="text" id="player-name" placeholder="Enter Name" maxlength="10">
                         <button id="submit-score-btn" class="action-btn" style="padding: 8px 16px; font-size: 0.9rem;">SUBMIT</button>
-                  </div>
+                    </div>
 
-            <ul id="highscore-list" class="highscore-list">
-              <!-- Scores will be injected here -->
-              <!-- <li class="highscore-item"><span class="highscore-rank">1</span><span class="highscore-name">AAA</span><span class="highscore-score">10000</span></li> -->
-            </ul>
+                    <ul id="highscore-list" class="highscore-list">
+                    </ul>
 
-            <button id="restart-btn" class="action-btn" style="display: none">
-              PLAY AGAIN
-            </button>
-            <button
-              id="close-hs-btn"
-              class="util-btn"
-              style="
-                margin-top: 15px;
-                background: transparent;
-                border: none;
-                font-size: 14px;
-                opacity: 0.7;
-              "
-            >
-              Close
-            </button>
-          </div>
-        </div>
-
-        <div class="game-sidebar">
-          <!-- Stats and Controls -->
-          <div class="board-stats">
-            <div class="stat-group">
-              <span class="stat-label">NEXT</span>
-              <canvas id="next-piece" width="60" height="60"></canvas>
+                    <button id="restart-btn" class="action-btn" style="display:none;">PLAY AGAIN</button>
+                    <button id="close-hs-btn" class="util-btn" style="margin-top:15px; background:transparent; border:none; font-size:14px; opacity:0.7;">Close</button>
+                </div>
             </div>
-            <div class="stats-right">
-              <div class="stat-group">
-                <span class="stat-label">LEVEL</span>
-                <span class="stat-value" id="level">1</span>
-              </div>
-              <div class="stat-group">
-                <span class="stat-label">SCORE</span>
-                <span class="stat-value" id="score">0</span>
-              </div>
+
+            <div class="right-sidebar">
+                <div class="side-controls">
+                    <button id="stop-btn" class="util-btn">⏹️</button>
+                    <button id="pause-btn" class="util-btn">⏸️</button>
+                    <button id="mute-btn" class="util-btn">🔊</button>
+                </div>
             </div>
-          </div>
-
-          <div class="side-controls">
-            <button id="stop-btn" class="util-btn">⏹️</button>
-            <button id="pause-btn" class="util-btn">⏸️</button>
-            <button id="mute-btn" class="util-btn">🔊</button>
-          </div>
         </div>
-      </div>
-
-      <!-- Header removed -->
 
       <!-- Mobile Controls (Restored Grid Layout) -->
       <div id="controls-area">
         <div id="controls">
           <!-- Row 1 -->
-          <div></div>
-          <!-- Empty top-left -->
+          <div></div> <!-- Empty top-left -->
           <div class="btn btn-hard" id="btn-hard">⏬</div>
           <div class="btn btn-rotate" id="btn-rotate">↻</div>
 
