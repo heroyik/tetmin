@@ -362,15 +362,6 @@
 <body>
 
     <div id="app">
-        <!-- Error Logger for Debugging -->
-        <script>
-            window.onerror = function(msg, url, line, col, error) {
-               alert("Error: " + msg + "\nurl: " + url + "\nline: " + line);
-            };
-            window.addEventListener('unhandledrejection', function(event) {
-               alert("Unhandled Rejection: " + event.reason);
-            });
-        </script>
         <div id="toast">민비서 화이팅~</div>
 
         <!-- Game Area -->
@@ -647,7 +638,7 @@
                 bgm.currentTime = 0;
                 
                 // Hook High Score Logic
-                if (supabase) {
+                if (supabaseClient) {
                     handleGameOver();
                 } else {
                     // Fallback to old behavior if no supabase
@@ -863,11 +854,12 @@
 
         // --- Supabase Config ---
         // Config is loaded from js/config.js
-        let supabase = null;
+        // Config is loaded from js/config.js
+        let supabaseClient = null;
         try {
             // Check for window.supabase (from CDN) and config
             if (window.supabase && window.supabase.createClient && window.SUPABASE_CONFIG) {
-                supabase = window.supabase.createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.key);
+                supabaseClient = window.supabase.createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.key);
                 console.log("Supabase initialized");
             } else {
                 console.warn("Supabase SDK not loaded or Config missing. SDK:", !!window.supabase, "Config:", !!window.SUPABASE_CONFIG);
@@ -876,9 +868,9 @@
 
 
         async function fetchHighScores() {
-            if(!supabase) return [];
+            if(!supabaseClient) return [];
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('highscores')
                     .select('*')
                     .order('score', { ascending: false })
@@ -893,9 +885,9 @@
         }
 
         async function saveHighScore(name, score) {
-            if(!supabase) return;
+            if(!supabaseClient) return;
             try {
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('highscores')
                     .insert([{ name, score }]);
                 if (error) throw error;
