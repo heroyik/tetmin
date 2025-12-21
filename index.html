@@ -856,11 +856,12 @@
         // Config is loaded from js/config.js
         let supabase = null;
         try {
-            if (typeof createClient !== 'undefined' && window.SUPABASE_CONFIG) {
+            // Check for window.supabase (from CDN) and config
+            if (window.supabase && window.supabase.createClient && window.SUPABASE_CONFIG) {
                 supabase = window.supabase.createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.key);
                 console.log("Supabase initialized");
             } else {
-                console.warn("Supabase SDK not loaded or Config missing");
+                console.warn("Supabase SDK not loaded or Config missing. SDK:", !!window.supabase, "Config:", !!window.SUPABASE_CONFIG);
             }
         } catch(e) { console.error("Supabase init error", e); }
 
