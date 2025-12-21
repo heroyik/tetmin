@@ -271,7 +271,93 @@
         }
 
         /* Mobile Controls (Bottom) */
+        
+        /* High Score Overlay Styles */
+        #highscore-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); /* Darker background */
+            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            padding: 20px;
+        }
+        
+        #highscore-overlay h2 {
+            margin: 0 0 20px 0;
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
+            text-transform: uppercase;
+        }
+
+        .highscore-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            width: 100%;
+            max-width: 240px;
+        }
+
+        .highscore-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.1rem;
+        }
+        
+        .highscore-item:last-child { border-bottom: none; }
+        .highscore-rank { color: #888; margin-right: 10px; width: 20px;}
+        .highscore-name { color: #fff; font-weight: bold; flex: 1; text-align: left; }
+        .highscore-score { color: var(--accent-color); font-family: monospace; }
+
+        #name-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 240px;
+            margin-bottom: 20px;
+        }
+
+        #player-name {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1rem;
+            text-align: center;
+            outline: none;
+        }
+        
+        #player-name:focus {
+            border-color: var(--accent-color);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .action-btn {
+            background: var(--accent-color);
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 0, 85, 0.4);
+            transition: all 0.2s;
+        }
+        
+        .action-btn:active { transform: scale(0.95); opacity: 0.9; }
+
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
 </head>
 <body>
 
@@ -286,6 +372,24 @@
                     <h1>TETRIS</h1>
                     <p>민비서의 콧노래 ♪</p>
                     <div class="blink">TAP TO START</div>
+                </div>
+                <!-- High Score Overlay -->
+                <div id="highscore-overlay">
+                    <h2 id="hs-title">HIGH SCORES</h2>
+                    
+                    <div id="name-input-container" style="display:none;">
+                        <p style="color:#aaa; margin-bottom:10px;">New Record!</p>
+                        <input type="text" id="player-name" placeholder="Enter Name" maxlength="10">
+                        <button id="submit-score-btn" class="action-btn">SUBMIT</button>
+                    </div>
+
+                    <ul id="highscore-list" class="highscore-list">
+                        <!-- Scores will be injected here -->
+                        <!-- <li class="highscore-item"><span class="highscore-rank">1</span><span class="highscore-name">AAA</span><span class="highscore-score">10000</span></li> -->
+                    </ul>
+
+                    <button id="restart-btn" class="action-btn" style="display:none;">PLAY AGAIN</button>
+                    <button id="close-hs-btn" class="util-btn" style="margin-top:15px; background:transparent; border:none; font-size:14px; opacity:0.7;">Close</button>
                 </div>
             </div>
 
@@ -532,10 +636,17 @@
                 AudioEngine.gameover();
                 bgm.pause();
                 bgm.currentTime = 0;
-                overlay.style.display = 'flex';
-                overlay.querySelector('h1').innerText = "GAME OVER";
-                overlay.querySelector('p').innerText = "SCORE: " + player.score;
-                overlay.querySelector('.blink').innerText = "RESTART";
+                
+                // Hook High Score Logic
+                if (supabase) {
+                    handleGameOver();
+                } else {
+                    // Fallback to old behavior if no supabase
+                    overlay.style.display = 'flex';
+                    overlay.querySelector('h1').innerText = "GAME OVER";
+                    overlay.querySelector('p').innerText = "SCORE: " + player.score;
+                    overlay.querySelector('.blink').innerText = "RESTART";
+                }
             } else {
                 drawNext();
             }
@@ -732,6 +843,150 @@
              dropCounter = 0;
         });
 
+        const restartBtn = document.getElementById('restart-btn');
+        const closeHsBtn = document.getElementById('close-hs-btn');
+        const highscoreOverlay = document.getElementById('highscore-overlay');
+        const highscoreList = document.getElementById('highscore-list');
+        const nameInputContainer = document.getElementById('name-input-container');
+        const playerNameInput = document.getElementById('player-name');
+        const submitScoreBtn = document.getElementById('submit-score-btn');
+        const hsTitle = document.getElementById('hs-title');
+
+        // --- Supabase Config ---
+        // Config is loaded from js/config.js
+        let supabase = null;
+        try {
+            if (typeof createClient !== 'undefined' && window.SUPABASE_CONFIG) {
+                supabase = window.supabase.createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.key);
+                console.log("Supabase initialized");
+            } else {
+                console.warn("Supabase SDK not loaded or Config missing");
+            }
+        } catch(e) { console.error("Supabase init error", e); }
+
+
+        async function fetchHighScores() {
+            if(!supabase) return [];
+            try {
+                const { data, error } = await supabase
+                    .from('highscores')
+                    .select('*')
+                    .order('score', { ascending: false })
+                    .limit(5);
+                
+                if (error) throw error;
+                return data;
+            } catch (error) {
+                console.error('Error fetching scores:', error);
+                return [];
+            }
+        }
+
+        async function saveHighScore(name, score) {
+            if(!supabase) return;
+            try {
+                const { error } = await supabase
+                    .from('highscores')
+                    .insert([{ name, score }]);
+                if (error) throw error;
+            } catch (error) {
+                console.error('Error saving score:', error);
+            }
+        }
+
+        async function handleGameOver() {
+             // 1. Fetch current top 5
+             const topScores = await fetchHighScores();
+             
+             // 2. Check if player qualifies
+             // Criteria: List has < 5 items OR player score > lowest score in list
+             const isHighScore = topScores.length < 5 || player.score > topScores[topScores.length - 1].score;
+
+             showHighScoreScreen(topScores, isHighScore);
+        }
+
+        function renderHighScores(scores) {
+            highscoreList.innerHTML = '';
+            if (scores.length === 0) {
+                 highscoreList.innerHTML = '<li style="text-align:center; color:#666;">No scores yet</li>';
+                 return;
+            }
+            
+            scores.forEach((s, index) => {
+                const li = document.createElement('li');
+                li.className = 'highscore-item';
+                li.innerHTML = `
+                    <span class="highscore-rank">${index + 1}</span>
+                    <span class="highscore-name">${s.name}</span>
+                    <span class="highscore-score">${s.score}</span>
+                `;
+                highscoreList.appendChild(li);
+            });
+        }
+
+        function showHighScoreScreen(currentScores, isNewRecord) {
+             overlay.style.display = 'none'; // Hide standard game over
+             highscoreOverlay.style.display = 'flex';
+             
+             renderHighScores(currentScores);
+
+             if (isNewRecord) {
+                 hsTitle.innerText = "NEW HIGH SCORE!";
+                 nameInputContainer.style.display = 'flex';
+                 restartBtn.style.display = 'none';
+                 closeHsBtn.style.display = 'none';
+                 setTimeout(() => playerNameInput.focus(), 100);
+             } else {
+                 hsTitle.innerText = "HIGH SCORES";
+                 nameInputContainer.style.display = 'none';
+                 restartBtn.style.display = 'block';
+                 closeHsBtn.style.display = 'block';
+             }
+        }
+
+        submitScoreBtn.addEventListener('click', async () => {
+            const name = playerNameInput.value.trim() || 'Anonymous';
+            const score = player.score;
+            
+            // UI pending state
+            submitScoreBtn.innerText = "Saving...";
+            submitScoreBtn.disabled = true;
+
+            await saveHighScore(name, score);
+            
+            // Refresh list
+            const updatedScores = await fetchHighScores();
+            renderHighScores(updatedScores);
+            
+            // Reset UI
+            nameInputContainer.style.display = 'none';
+            hsTitle.innerText = "HIGH SCORES";
+            restartBtn.style.display = 'block';
+            closeHsBtn.style.display = 'block';
+            submitScoreBtn.innerText = "SUBMIT";
+            submitScoreBtn.disabled = false;
+        });
+
+        restartBtn.addEventListener('click', () => {
+             highscoreOverlay.style.display = 'none';
+             startGame();
+        });
+
+        closeHsBtn.addEventListener('click', () => {
+            highscoreOverlay.style.display = 'none';
+            // Show standard Overlay
+             overlay.style.display = 'flex';
+             overlay.querySelector('h1').innerText = "TETRIS";
+             overlay.querySelector('.blink').innerText = "TAP TO START";
+        });
+
+
+        // Modify existing functions to hook in High Score
+        // We need to override stopGame to wait a bit or call handleGameOver
+        // The original stopGame just shows the overlay instantly.
+        // Let's modify the end of playerReset where Game Over happens
+        
+        // REPLACING parts of playerReset logic
     </script>
     <!-- GitHub Pages Link Rewriter -->
     <script>
