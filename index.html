@@ -503,6 +503,10 @@
                 font-size: 24px;
             }
         }
+
+        .hidden { display: none !important; }
+        .small-btn { padding: 8px 16px; font-size: 0.9rem; }
+        .text-btn { margin-top: 15px; background: transparent; border: none; font-size: 14px; opacity: 0.7; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
@@ -544,16 +548,16 @@
                 <div id="highscore-overlay">
                     <h2 id="hs-title">HIGH SCORES</h2>
                     
-                    <div id="name-input-container" style="display:none;">
+                    <div id="name-input-container" class="hidden">
                         <input type="text" id="player-name" placeholder="Enter Name" maxlength="10">
-                        <button id="submit-score-btn" class="action-btn" style="padding: 8px 16px; font-size: 0.9rem;">SUBMIT</button>
+                        <button id="submit-score-btn" class="action-btn small-btn">SUBMIT</button>
                     </div>
 
                     <ul id="highscore-list" class="highscore-list">
                     </ul>
 
-                    <button id="restart-btn" class="action-btn" style="display:none;">PLAY AGAIN</button>
-                    <button id="close-hs-btn" class="util-btn" style="margin-top:15px; background:transparent; border:none; font-size:14px; opacity:0.7;">Close</button>
+                    <button id="restart-btn" class="action-btn hidden">PLAY AGAIN</button>
+                    <button id="close-hs-btn" class="util-btn text-btn hidden">Close</button>
                 </div>
             </div>
 
@@ -1198,15 +1202,15 @@
 
         if (isNewRecord) {
           hsTitle.innerText = "NEW HIGH SCORE!";
-          nameInputContainer.style.display = "flex";
-          restartBtn.style.display = "none";
-          closeHsBtn.style.display = "none";
+          nameInputContainer.classList.remove("hidden");
+          restartBtn.classList.add("hidden");
+          closeHsBtn.classList.add("hidden");
           setTimeout(() => playerNameInput.focus(), 100);
         } else {
           hsTitle.innerText = "HIGH SCORES";
-          nameInputContainer.style.display = "none";
-          restartBtn.style.display = "block";
-          closeHsBtn.style.display = "block";
+          nameInputContainer.classList.add("hidden");
+          restartBtn.classList.remove("hidden");
+          closeHsBtn.classList.remove("hidden");
         }
       }
 
@@ -1225,10 +1229,10 @@
         renderHighScores(updatedScores);
 
         // Reset UI
-        nameInputContainer.style.display = "none";
+        nameInputContainer.classList.add("hidden");
         hsTitle.innerText = "HIGH SCORES";
-        restartBtn.style.display = "block";
-        closeHsBtn.style.display = "block";
+        restartBtn.classList.remove("hidden");
+        closeHsBtn.classList.remove("hidden");
         submitScoreBtn.innerText = "SUBMIT";
         submitScoreBtn.disabled = false;
       });
