@@ -976,10 +976,15 @@
         cancelAnimationFrame(animationId);
         pauseBtn.innerText = "⏸️"; // Reset pause button state
 
-        overlay.style.display = "flex";
-        overlay.querySelector("h1").innerText = "TETRIS";
-        overlay.querySelector("p").innerText = "Press Start";
-        overlay.querySelector(".blink").innerText = "TAP TO START";
+        // Hook High Score Logic for Stop Button
+        if (supabaseClient) {
+            handleGameOver();
+        } else {
+            overlay.style.display = "flex";
+            overlay.querySelector("h1").innerText = "TETRIS";
+            overlay.querySelector("p").innerText = "Press Start";
+            overlay.querySelector(".blink").innerText = "TAP TO START";
+        }
       }
 
       function showToast() {
